@@ -133,7 +133,7 @@ class Debug(module.Module):
 
         tasks = self.tasks.copy()
         for chat_id, msg_id in tasks:
-            if ctx.chat.id == chat_id and ctx.msg.id == msg.id:
+            if ctx.chat.id == chat_id and ctx.msg.id == msg_id:
                 task = tasks[(chat_id, msg_id)]
                 task.cancel()
                 self.tasks.pop((chat_id, msg_id), None)
