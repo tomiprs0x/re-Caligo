@@ -154,6 +154,7 @@ class Debug(module.Module):
 
     async def on_load(self):
         self._log_cache = ""
+        self.tasks = set()
 
     @command.desc("Cancel evaluation")
     @command.usage("Reply to running task")
