@@ -8,10 +8,8 @@ import os
 import re
 import sys
 import traceback
-from typing import Any, ClassVar, Optional, Set, Tuple
+from typing import Any, ClassVar, Optional, Tuple
 
-import aiopath
-import caligo
 import pyrogram
 from aiopath import AsyncPath
 from pyrogram import filters
@@ -24,6 +22,7 @@ from pyrogram.types import (
     InputTextMessageContent,
 )
 
+import caligo
 from caligo import command, listener, module, util
 
 
@@ -54,12 +53,12 @@ class Debug(module.Module):
             "self": self,
             "bot": self.bot,
         }
-    
+
     async def exec_function(self, code: str) -> Any:
         body = ast.parse(code, "exec")
         if isinstance(body[-1], ast.Expr):
             body[-1] = ast.Return(value=body[-1].value)
-        
+
         name = "executor"
         node = ast.Module(
             body=[
@@ -87,7 +86,7 @@ class Debug(module.Module):
 
         scope = {}
         exec(compile(node, "<string>", "exec"), scope)
-        
+
         coro = scope[name]
         args = self.scopes.values()
         return await coro(*args)
@@ -118,19 +117,21 @@ class Debug(module.Module):
                 fmt_traceback = "".join(
                     traceback.format_list(
                         [
-                            i for i in exception.stack
+                            i
+                            for i in exception.stack
                             if not any(
                                 path in i.filename
                                 for path in ["<string>", "/usr/local/lib/"]
                             )
                         ]
-                    ) or "-"
+                    )
+                    )
                 output = (
                     f"{exception.exc_type.__name__}:"
                     f"\n  {exception._str if exception._str.strip() else '-'}"
                     f"\n\nTraceback:\n{fmt_traceback}"
                 )
-        
+
         if code.endswith("return"):
             return
 
@@ -151,9 +152,9 @@ class Debug(module.Module):
                     paste_url = await resp.text()
                 respond_text = (
                     "<b>Input:</b>"
-                    f"\n<code>{html.escape(code[:512] + '...' if len(code) > 1024 else html.escape(code)}</code>"
+                    f"\n<code>{html.escape(code[:512]) + '...' if len(code) > 1024 else html.escape(code)}</code>"
                     "\n\n<b>Output:</b>"
-                    f"\n<code>{html.escape(output[:512] + '...' if len(output) > 1024 else html.escape(output)}</code>"
+                    f"\n<code>{html.escape(output[:512]) + '...' if len(output) > 1024 else html.escape(output)}</code>"
                     f"\n\n<b><a href={paste_url}>{el_str}</a></b>"
                 )
 
@@ -171,6 +172,7 @@ class Debug(module.Module):
             if ctx.reply_msg.id == replied:
                 task.cancel()
                 self.tasks.remove((replied, task))
+                await ctx.respond("Cancelled", delete_after=2.5)
                 break
             else:
                 await ctx.respond("Reply to an active task!", delete_after=2.5)
