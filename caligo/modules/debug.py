@@ -77,17 +77,20 @@ class Debug(module.Module):
                 output = out_buf.getvalue().rstrip() or str(result)
             except (asyncio.CancelledError, Exception):
                 exception = traceback.TracebackException(*sys.exc_info())
-                fmt_traceback = "".join(
-                    traceback.format_list(
-                        [
-                            i
-                            for i in exception.stack
-                            if not any(
-                                path in i.filename
-                                for path in ["<string>", "/caligo/", "/lib/"]
-                            )
-                        ]
+                fmt_traceback = (
+                    "".join(
+                        traceback.format_list(
+                            [
+                                i
+                                for i in exception.stack
+                                if not any(
+                                    path in i.filename
+                                    for path in ["<string>", "/caligo/", "/lib/"]
+                                )
+                            ]
+                        )
                     )
+                    or "-"
                 )
                 output = (
                     f"{exception.exc_type.__name__}:"
