@@ -132,9 +132,8 @@ class Debug(module.Module):
             return
 
         tasks = self.tasks.copy()
-        for chat_id, msg_id in tasks.keys():
-            if ctx.chat.id == chat_id and ctx.msg.id == msg_id:
-                task = tasks[(chat_id, msg_id)]
+        for (chat_id, msg_id), task in tasks.items():
+            if ctx.chat.id == chat_id and ctx.reply_msg.id == msg_id:
                 task.cancel()
                 self.tasks.pop((chat_id, msg_id), None)
                 await ctx.respond("Cancelled", delete_after=2.5)
