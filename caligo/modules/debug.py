@@ -83,7 +83,8 @@ class Debug(module.Module):
                             i
                             for i in exception.stack
                             if not any(
-                                path in i.filename for path in ["/caligo/", "/lib/"]
+                                path in i.filename
+                                for path in ["<string>", "/caligo/", "/lib/"]
                             )
                         ]
                     )
