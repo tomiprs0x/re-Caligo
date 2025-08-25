@@ -147,7 +147,7 @@ class Debug(module.Module):
         if len(respond_text) > 2048:
             if len(output) > 1024:
                 async with self.bot.http.post(
-                    "https://paste.rs", data=outputt.encode()
+                    "https://paste.rs", data=output.encode()
                 ) as resp:
                     paste_url = await resp.text()
                 respond_text = (
