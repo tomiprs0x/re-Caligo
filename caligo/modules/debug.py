@@ -132,7 +132,7 @@ class Debug(module.Module):
             return
 
         tasks = self.tasks.copy()
-        for chat_id, msg_id in tasks:
+        for chat_id, msg_id in tasks.keys():
             if ctx.chat.id == chat_id and ctx.msg.id == msg_id:
                 task = tasks[(chat_id, msg_id)]
                 task.cancel()
