@@ -55,7 +55,7 @@ class Debug(module.Module):
         }
 
     async def exec_function(self, code: str) -> Any:
-        body = ast.parse(code, "exec")
+        body = ast.parse(code, "exec").body
         if isinstance(body[-1], ast.Expr):
             body[-1] = ast.Return(value=body[-1].value)
 
