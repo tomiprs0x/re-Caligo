@@ -161,7 +161,8 @@ class Debug(module.Module):
     @command.alias("c")
     async def cmd_cancel(self, ctx: command.Context) -> None:
         if not ctx.reply_msg:
-            return await ctx.respond("<i>Reply to an active task!</i>")
+            await ctx.respond("<i>Reply to an active task!</i>")
+            return
 
         for replied, task in list(self.tasks.copy()):
             if ctx.reply_msg.id == replied:
@@ -169,7 +170,7 @@ class Debug(module.Module):
                 self.tasks.remove((replied, task))
                 break
             else:
-                return await ctx.respond("Reply to an active task!", delete_after=2.5)
+                await ctx.respond("Reply to an active task!", delete_after=2.5)
 
     @command.desc("Evaluate code")
     @command.usage("[code snippet]")
@@ -179,6 +180,8 @@ class Debug(module.Module):
             return "Give me code to evaluate."
 
         code = ctx.msg.content.markdown.split(maxsplit=1)[1]
+        await ctx.respond(f"<b>Running:</b>\n<code>{code}</code>")
+
         out_buf = io.StringIO()
 
         async def send(*args: Any, **kwargs: Any) -> pyrogram.types.Message:
@@ -227,10 +230,10 @@ class Debug(module.Module):
         }
 
         start_time = util.time.usec()
-        task = self.bot.loop.create_task(reval(code, globals(), **eval_vars))
-        self.tasks.add((ctx.msg.id, task))
         try:
             with redirect_stdout(out_buf):
+                task = self.bot.loop.create_task(reval(code, globals(), **eval_vars))
+                self.tasks.add((ctx.msg.id, task))
                 result, elapsed, exception = await task
                 prefix = "" if exception is None else "⚠️ Error executing snippet\n\n"
                 if exception is not None:
