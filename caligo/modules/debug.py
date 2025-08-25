@@ -8,7 +8,7 @@ import os
 import re
 import sys
 import traceback
-from typing import Any, ClassVar, Optional, Tuple
+from typing import Any, ClassVar, Dict, Optional, Tuple
 
 import pyrogram
 from aiopath import AsyncPath
@@ -125,7 +125,7 @@ class Debug(module.Module):
                             )
                         ]
                     )
-                    )
+                )
                 output = (
                     f"{exception.exc_type.__name__}:"
                     f"\n  {exception._str if exception._str.strip() else '-'}"
