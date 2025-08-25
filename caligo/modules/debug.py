@@ -1,4 +1,5 @@
 import ast
+import asyncio
 import inspect
 import io
 import os
@@ -7,7 +8,7 @@ import sys
 import traceback
 from contextlib import redirect_stdout
 from html import escape
-from typing import Any, ClassVar, Optional, Tuple
+from typing import Any, ClassVar, Optional, Set, Tuple
 
 import aiopath
 import pyrogram
@@ -149,8 +150,25 @@ async def reval(
 class Debug(module.Module):
     name: ClassVar[str] = "Debug"
 
+    tasks: Set[Tuple[int, asyncio.Task[Any]]]
+
     async def on_load(self):
         self._log_cache = ""
+
+    @command.desc("Cancel evaluation")
+    @command.usage("Reply to running task")
+    @command.alias("c")
+    async def cmd_cancel(self, ctx: command.Context) -> None:
+        if not ctx.reply_msg:
+            return await ctx.respond("<i>Reply to an active task!</i>")
+
+        for replied, task in list(self.tasks.copy()):
+            if ctx.reply_msg.id == replied:
+                task.cancel()
+                self.tasks.remove((replied, task))
+                break
+            else:
+                return await ctx.respond("Reply to an active task!", delete_after=2.5)
 
     @command.desc("Evaluate code")
     @command.usage("[code snippet]")
@@ -171,6 +189,7 @@ class Debug(module.Module):
             return print(*args, **kwargs)
 
         eval_vars = {
+            "asyncio": asyncio,
             "self": self,
             "ctx": ctx,
             "bot": self.bot,
@@ -207,13 +226,15 @@ class Debug(module.Module):
         }
 
         start_time = util.time.usec()
+        task = self.bot.loop.create_task(reval(code, globals(), **eval_vars))
+        self.tasks.add((ctx.msg.id, task))
         try:
             with redirect_stdout(out_buf):
-                result, elapsed, exception = await reval(code, globals(), **eval_vars)
+                result, elapsed, exception = await task
                 prefix = "" if exception is None else "⚠️ Error executing snippet\n\n"
                 if exception is not None:
                     result = str(exception)
-        except Exception as e:
+        except (asyncio.CancelledError, Exception) as e:
             end_time = util.time.usec()
             elapsed = end_time - start_time
             prefix = "⚠️ Error executing snippet\n\n"
