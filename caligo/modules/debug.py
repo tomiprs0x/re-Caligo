@@ -83,7 +83,7 @@ class Debug(module.Module):
                             [
                                 i
                                 for i in exception.stack
-                                if any("site-packages" in i.filename)
+                                if "site-packages" in i.filename
                             ]
                         )
                     )
