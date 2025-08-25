@@ -90,7 +90,7 @@ class Debug(module.Module):
                             ]
                         )
                     )
-                    or "-"
+                    or "  -"
                 )
                 output = (
                     f"{exception.exc_type.__name__}:"
