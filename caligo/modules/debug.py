@@ -241,7 +241,11 @@ class Debug(module.Module):
         except (asyncio.CancelledError, Exception) as e:
             end_time = util.time.usec()
             elapsed = end_time - start_time
-            prefix = "⚠️ Error executing snippet\n\n"
+            prefix = (
+                "⚠️ Error executing snippet\n\n"
+                if not isinstance(e, asyncio.CancelledError)
+                else "Task Cancelled!\n\n"
+            )
             result = e
 
         if not out_buf.getvalue() or result is not None:
