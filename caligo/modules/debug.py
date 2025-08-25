@@ -33,7 +33,7 @@ class Debug(module.Module):
     scopes: Dict[str, Any]
 
     async def on_load(self):
-        self.tasks = set()
+        self.tasks = dict()
         self.scopes = {
             "asyncio": asyncio,
             "contextlib": contextlib,
