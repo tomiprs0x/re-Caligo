@@ -54,43 +54,6 @@ class Debug(module.Module):
             "bot": self.bot,
         }
 
-    async def exec_function(self, code: str) -> Any:
-        body = ast.parse(code, "exec").body
-        if isinstance(body[-1], ast.Expr):
-            body[-1] = ast.Return(value=body[-1].value)
-
-        name = "executor"
-        node = ast.Module(
-            body=[
-                ast.AsyncFunctionDef(
-                    name=name,
-                    args=ast.arguments(
-                        posonlyargs=[],
-                        args=[ast.arg(arg=key) for key in self.scopes],
-                        vararg=None,
-                        kwonlyargs=[],
-                        kw_defaults=[],
-                        kwarg=None,
-                        defaults=[],
-                    ),
-                    body=body,
-                    decorator_list=[],
-                    returns=None,
-                    type_comments=[],
-                    type_params=[],
-                )
-            ],
-            type_ignores=[],
-        )
-        ast.fix_missing_locations(node)
-
-        scope = {}
-        exec(compile(node, "<string>", "exec"), scope)
-
-        coro = scope[name]
-        args = self.scopes.values()
-        return await coro(*args)
-
     @command.desc("Evaluate code")
     @command.usage("[code snippet]")
     @command.alias("exec", "e")
@@ -168,10 +131,12 @@ class Debug(module.Module):
             await ctx.respond("<i>Reply to an active task!</i>")
             return
 
-        for replied, task in list(self.tasks.copy()):
-            if ctx.reply_msg.id == replied:
+        tasks = self.tasks.copy()
+        for chat_id, msg_id in tasks:
+            if ctx.chat.id == chat_id and ctx.msg.id == msg.id:
+                task = tasks[(chat_id, msg_id)]
                 task.cancel()
-                self.tasks.remove((replied, task))
+                self.tasks.pop((chat_id, msg_id), None)
                 await ctx.respond("Cancelled", delete_after=2.5)
                 break
             else:
@@ -267,3 +232,40 @@ class Debug(module.Module):
         ]
 
         await query.answer(results=results, cache_time=0)
+
+    async def exec_function(self, code: str) -> Any:
+        body = ast.parse(code, "exec").body
+        if isinstance(body[-1], ast.Expr):
+            body[-1] = ast.Return(value=body[-1].value)
+
+        name = "executor"
+        node = ast.Module(
+            body=[
+                ast.AsyncFunctionDef(
+                    name=name,
+                    args=ast.arguments(
+                        posonlyargs=[],
+                        args=[ast.arg(arg=key) for key in self.scopes],
+                        vararg=None,
+                        kwonlyargs=[],
+                        kw_defaults=[],
+                        kwarg=None,
+                        defaults=[],
+                    ),
+                    body=body,
+                    decorator_list=[],
+                    returns=None,
+                    type_comments=[],
+                    type_params=[],
+                )
+            ],
+            type_ignores=[],
+        )
+        ast.fix_missing_locations(node)
+
+        scope = {}
+        exec(compile(node, "<string>", "exec"), scope)
+
+        coro = scope[name]
+        args = self.scopes.values()
+        return await coro(*args)
