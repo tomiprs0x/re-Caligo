@@ -8,14 +8,12 @@ from typing import (
     Iterable,
     Optional,
     Sequence,
-    Type,
     TypeVar,
     Union,
 )
 
 from pyrogram.enums import ParseMode
 from pyrogram.filters import Filter
-from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 from pyrogram.types import Chat, LinkPreviewOptions, Message, Update
 
 from caligo import util
